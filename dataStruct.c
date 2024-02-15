@@ -86,6 +86,49 @@ USERDATA* SearchByName(const char* pszName) {
 	return NULL;
 }
 
+USERDATA* SearchToRemove(USERDATA** ppPrev,const char* pszName) {
+	//삭제할 Node 앞의 Node주소(ppPrev)를 받아 함수내에서 pPrev값을 담을수 있어
+	USERDATA* pCurrent = g_pHeadNode;
+	USERDATA* pPrev = NULL;
+	while (pCurrent != NULL) {
+		if (strcmp(pCurrent->name, pszName) == 0) {
+			*ppPrev = pPrev;//앞Node의 포인터변수 백업해줌
+			return pCurrent;
+		}
+		//pPrev : 삭제할 노드 앞의 Node
+		pPrev = pCurrent;
+		pCurrent = pCurrent->pNext;
+	}
+	//못찾으면 NULL리턴하고 끝냄
+	return NULL;
+}
+
+void RemoveNode(USERDATA* pPrev) {
+	//USERDATA* pRemove = pPrev.pNext하므로 매개변수 생략
+	USERDATA* pRemove = NULL;
+	if (pPrev == NULL) {
+		//지울노드가 Head Node일경우 pPrev가 NULL
+		if (g_pHeadNode == NULL) {
+			//노드가 존재하지 않는 경우
+			return;
+		}
+		else {
+			//노드가 존재하는 경우
+			pRemove = g_pHeadNode;
+			g_pHeadNode = pRemove->pNext;
+			printf("RemoveNode() : %s\n", pRemove->name);
+			free(pRemove);
+		}
+		return;
+	}
+	//if문 탈출, pPrev값이 존재 = 삭제할 Node가 Head가 아님
+	pRemove = pPrev->pNext;//pRemove = 삭제될 노드
+	pPrev->pNext = pRemove->pNext;
+	printf("RemoveNode() : %s\n", pRemove->name);
+	free(pRemove);
+
+}
+
 void PrintList(void) {
 	USERDATA* pTmp = g_pHeadNode;
 	while (pTmp != NULL) {
@@ -98,20 +141,29 @@ void PrintList(void) {
 		);
 		pTmp = pTmp->pNext;
 	}
+	putchar('\n');
+}
+
+void TestStep01(void) {
+	puts("TestStep01()--------------------");
+	AddNewNode(10, "Choi", "010-2222-2222");
+	AddNewNode(10, "Hoon", "010-1111-1111");
+	AddNewNode(13, "Jang", "010-3333-3333");
+
+	PrintList();
+
+	/*삭제하기*/
+	USERDATA* pPrev = NULL;
+	if (SearchToRemove(&pPrev, "Choi") != NULL) {
+		//찾았으면 지우기
+		RemoveNode(pPrev);
+	}
+	PrintList();
+	ReleaseList();
+	putchar('\n');
 }
 
 int main(void) {
-	InitDummyData();
-
-	//검색하기
-	SearchByName("Hoon");
-	SearchByName("Choi");
-	SearchByName("Jang");
-	SearchByName("Kim");
-
-	//Print list
-	//PrintList();
-
-	ReleaseList();
+	TestStep01();
 	return 0;
 }
