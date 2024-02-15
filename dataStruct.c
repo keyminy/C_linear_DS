@@ -27,9 +27,18 @@ void AddNewNode(int age,const char* pszName,const char* pszPhone) {
 		g_pHeadNode = pNewNode;
 	}
 	else {
-		pNewNode->pNext = g_pHeadNode;
-		//header를 새로운 Node로 update
-		g_pHeadNode = pNewNode;
+		/* (M2)tail쪽에 새로운 Node추가 */
+		USERDATA* pTail = g_pHeadNode;
+		//마지막 노드야??
+		while (pTail->pNext != NULL) {
+			pTail = pTail->pNext;
+		}
+		//pNewNode를 추가해준다
+		pTail-> pNext = pNewNode;
+		/* (M1)Head뒤에 새로운 Node를 추가*/
+		//pNewNode->pNext = g_pHeadNode;
+		////header를 새로운 Node로 update
+		//g_pHeadNode = pNewNode;
 	}
 }
 
