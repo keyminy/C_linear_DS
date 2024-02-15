@@ -71,6 +71,21 @@ void InitDummyData(void) {
 	AddNewNode(13, "Jang", "010-3333-3333");
 }
 
+//사용자에게 name으로 검색하고, 찾은 Node의 주소반환
+USERDATA* SearchByName(const char* pszName) {
+	USERDATA* pTmp = g_pHeadNode;
+	while (pTmp != NULL) {
+		if (strcmp(pTmp->name, pszName) == 0) {
+			printf("\"%s\" : Found!!\n",pszName);
+			return pTmp;
+		}
+		pTmp = pTmp->pNext;
+	}
+	printf("\"%s\" : Not Found!!\n",pszName);
+	//못찾으면 NULL리턴하고 끝냄
+	return NULL;
+}
+
 void PrintList(void) {
 	USERDATA* pTmp = g_pHeadNode;
 	while (pTmp != NULL) {
@@ -88,8 +103,14 @@ void PrintList(void) {
 int main(void) {
 	InitDummyData();
 
+	//검색하기
+	SearchByName("Hoon");
+	SearchByName("Choi");
+	SearchByName("Jang");
+	SearchByName("Kim");
+
 	//Print list
-	PrintList();
+	//PrintList();
 
 	ReleaseList();
 	return 0;
