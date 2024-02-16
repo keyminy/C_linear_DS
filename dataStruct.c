@@ -7,13 +7,15 @@ typedef struct USERDATA {
 	int age;
 	char name[32];
 	char phone[32];
+	struct USERDATA* pPrev;
 	struct USERDATA* pNext;
 } USERDATA;
 
 //Head Node가 필요하다
 //USERDATA* g_pHeadNode = NULL;
-/*더미 헤드를 갖는 리스트로 변환*/
-USERDATA g_HeadNode = {0,"__Dummy Node__"};
+/*더미 헤드를 갖는 2중 연결 리스트로 변환*/
+USERDATA g_HeadNode = {0,"__Dummy Head__"};
+USERDATA g_TailNode = {0,"__Dummy Tail__"};
 
 void AddNewNode(int age,const char* pszName,const char* pszPhone) {
 	//const 포인터 : 값을 읽기만하지, 쓰는것은 아니므로
@@ -24,27 +26,32 @@ void AddNewNode(int age,const char* pszName,const char* pszPhone) {
 	//pNewNode->name = pszName; //불가
 	strcpy_s(pNewNode->name,sizeof(pNewNode->name),pszName);
 	strcpy_s(pNewNode->phone,sizeof(pNewNode->phone),pszPhone);
+	pNewNode->pPrev = NULL;
 	pNewNode->pNext = NULL;
 
-	/* (M2)tail쪽에 새로운 Node추가 */
-	USERDATA* pTail = &g_HeadNode;
-	//마지막 노드야??
-	while (pTail->pNext != NULL) {
-		pTail = pTail->pNext;
-	}
-	//pNewNode를 추가해준다
-	pTail-> pNext = pNewNode;
-	/* (M1)Head뒤에 새로운 Node를 추가(Stack방식)*/
-	//pNewNode->pNext = g_pHeadNode;
-	////header를 새로운 Node로 update
-	//g_pHeadNode = pNewNode;
+	/*Dummy Tail앞에 넣으면 뒤에 추가하는 구조로 이용할 수 있음*/
+	USERDATA* pPrevNode = g_TailNode.pPrev; //dummy head
+	//1,2과정
+	pNewNode->pPrev = pPrevNode;
+	pNewNode->pNext = &g_TailNode;
+	//3,4과정
+	pPrevNode->pNext = pNewNode;
+	g_TailNode.pPrev = pNewNode;
 }
+
+void InitList(void) {
+	//HEAD와 TAIL의 prev,next셋팅
+	g_HeadNode.pNext = &g_TailNode;
+	g_TailNode.pPrev = &g_HeadNode;
+}
+
 
 void ReleaseList(void) {
 	USERDATA* pTmp = g_HeadNode.pNext;
 	USERDATA* pDelete;//지워질 포인터노드
 	//1.날려버리기전, pNext값을 백업해야한다.
-	while (pTmp != NULL) {
+	while (pTmp != NULL && pTmp != &g_TailNode) {
+		//dummy head와 dummy tail은 동적할당한 것이 아니다.
 		pDelete = pTmp; 
 		pTmp = pTmp->pNext;
 
@@ -57,9 +64,7 @@ void ReleaseList(void) {
 		);
 		free(pDelete);
 	}
-
-	//2.백업을했으면, 백업한 대상 Node free
-	g_HeadNode.pNext = NULL; //최초 Header는 NULL이므로.
+	InitList();
 }
 
 void InitDummyData(void) {
@@ -85,24 +90,26 @@ USERDATA* SearchByName(const char* pszName) {
 }
 
 USERDATA* SearchToRemove(const char* pszName) {
-	USERDATA* pPrev = &g_HeadNode; //dummy node의 주소
-	while (pPrev->pNext != NULL) {
-		if (strcmp(pPrev->pNext->name, pszName) == 0) {
-			return pPrev;
+	USERDATA* pRemove = g_HeadNode.pNext; //dummy node 다음 주소
+	while (pRemove != NULL) {
+		if (strcmp(pRemove->name, pszName) == 0) {
+			printf("\"%s\" : Remove Found!!\n", pszName);
+			return pRemove;
 		}
-		pPrev = pPrev->pNext;
+		pRemove = pRemove->pNext;
 	}
+	printf("\"%s\" : Remove Not Found!!\n", pszName);
 	//못찾으면 NULL리턴하고 끝냄
 	return NULL;
 }
 
-void RemoveNode(USERDATA* pPrev) {
-	//USERDATA* pRemove = pPrev.pNext하므로 매개변수 생략
-	USERDATA* pRemove = NULL;
+void RemoveNode(USERDATA* pRemove) {
+	USERDATA* pPrev = pRemove->pPrev;
+	USERDATA* pNext = pRemove->pNext;
 
-	//if (pPrev == NULL)문 탈출, pPrev값이 존재 = 삭제할 Node가 Head가 아님
-	pRemove = pPrev->pNext;//pRemove = 삭제될 노드
 	pPrev->pNext = pRemove->pNext;
+	pNext->pPrev = pRemove->pPrev;
+
 	printf("RemoveNode() : %s\n", pRemove->name);
 	free(pRemove);
 }
@@ -122,6 +129,22 @@ void PrintList(void) {
 	putchar('\n');
 }
 
+void PrintListReverse(void) {
+	//pTmp값이 TailNode부터 시작
+	USERDATA* pTmp = g_TailNode.pPrev;
+	while (pTmp != NULL) {
+		printf("[%p] %d\t%s\t%s [%p]\n"
+			, pTmp
+			, pTmp->age
+			, pTmp->name
+			, pTmp->phone
+			, pTmp->pNext
+		);
+		pTmp = pTmp->pPrev;
+	}
+	putchar('\n');
+}
+
 void TestStep01(void) {
 	puts("TestStep01()--------------------");
 	AddNewNode(10, "Choi", "010-2222-2222");
@@ -136,7 +159,8 @@ void TestStep01(void) {
 		//찾았으면 지우기
 		RemoveNode(pPrev);
 	}
-	PrintList();
+	//PrintList();
+	PrintListReverse();
 	ReleaseList();
 	putchar('\n');
 }
@@ -180,6 +204,7 @@ void TestStep03(void) {
 }
 
 int main(void) {
+	InitList();
 	TestStep01();
 	TestStep02();
 	TestStep03();
