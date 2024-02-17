@@ -14,18 +14,18 @@ typedef struct USERDATA {
 //Head Node가 필요하다
 //USERDATA* g_pHeadNode = NULL;
 /*더미 헤드를 갖는 2중 연결 리스트로 변환*/
-USERDATA g_HeadNode = {0,"__Dummy Head__"};
-USERDATA g_TailNode = {0,"__Dummy Tail__"};
+USERDATA g_HeadNode = { 0,"__Dummy Head__" };
+USERDATA g_TailNode = { 0,"__Dummy Tail__" };
 
-void AddNewNode(int age,const char* pszName,const char* pszPhone) {
+void AddNewNode(int age, const char* pszName, const char* pszPhone) {
 	//const 포인터 : 값을 읽기만하지, 쓰는것은 아니므로
 	//추가
 	USERDATA* pNewNode = (USERDATA*)malloc(sizeof(USERDATA));
 	//pNewNode값 입력
 	pNewNode->age = age;
 	//pNewNode->name = pszName; //불가
-	strcpy_s(pNewNode->name,sizeof(pNewNode->name),pszName);
-	strcpy_s(pNewNode->phone,sizeof(pNewNode->phone),pszPhone);
+	strcpy_s(pNewNode->name, sizeof(pNewNode->name), pszName);
+	strcpy_s(pNewNode->phone, sizeof(pNewNode->phone), pszPhone);
 	pNewNode->pPrev = NULL;
 	pNewNode->pNext = NULL;
 
@@ -52,7 +52,7 @@ void ReleaseList(void) {
 	//1.날려버리기전, pNext값을 백업해야한다.
 	while (pTmp != NULL && pTmp != &g_TailNode) {
 		//dummy head와 dummy tail은 동적할당한 것이 아니다.
-		pDelete = pTmp; 
+		pDelete = pTmp;
 		pTmp = pTmp->pNext;
 
 		printf("Deleted!! [%p] %d\t%s\t%s [%p]\n"
@@ -79,12 +79,12 @@ USERDATA* SearchByName(const char* pszName) {
 	USERDATA* pTmp = g_HeadNode.pNext;
 	while (pTmp != NULL) {
 		if (strcmp(pTmp->name, pszName) == 0) {
-			printf("\"%s\" : Found!!\n",pszName);
+			printf("\"%s\" : Found!!\n", pszName);
 			return pTmp;
 		}
 		pTmp = pTmp->pNext;
 	}
-	printf("\"%s\" : Not Found!!\n",pszName);
+	printf("\"%s\" : Not Found!!\n", pszName);
 	//못찾으면 NULL리턴하고 끝냄
 	return NULL;
 }
@@ -131,7 +131,8 @@ void PrintList(void) {
 
 void PrintListReverse(void) {
 	//pTmp값이 TailNode부터 시작
-	USERDATA* pTmp = g_TailNode.pPrev;
+	USERDATA* pTmp = &g_TailNode;
+	printf("=======ReversePrint!!==========\n");
 	while (pTmp != NULL) {
 		printf("[%p] %d\t%s\t%s [%p]\n"
 			, pTmp
@@ -203,10 +204,76 @@ void TestStep03(void) {
 	putchar('\n');
 }
 
+void Push(USERDATA* pUser) {
+	//추가
+	USERDATA* pNewNode = (USERDATA*)malloc(sizeof(USERDATA));
+	//매개변수로 넘어오는 pUser값을 memcpy하기
+	memcpy(pNewNode, pUser, sizeof(USERDATA));
+	pNewNode->pPrev = NULL;
+	pNewNode->pNext = NULL;
+
+	//HEAD노드쪽에서만 데이터 추가
+	USERDATA* pNextNode = g_HeadNode.pNext;
+	pNewNode->pPrev = &g_HeadNode;
+	pNewNode->pNext = pNextNode;
+
+	pNextNode->pPrev = pNewNode;
+	g_HeadNode.pNext = pNewNode;
+}
+
+int IsEmpty(void) {
+	if (g_HeadNode.pNext == &g_TailNode) {
+		//데이터가 하나도 없음
+		return 1;
+	}
+	return 0;
+}
+
+USERDATA* Pop() {
+	if (IsEmpty()) {
+		puts("Error: Stack Underflow.");
+		return NULL;
+	}
+	//HEAD쪽에서만 remove하면됨
+	USERDATA* pPop = g_HeadNode.pNext; //반환할 노드(맨위에꺼)
+	//pop되는 부분의 교통정리
+	g_HeadNode.pNext = pPop->pNext;
+	pPop->pNext->pPrev = pPop->pPrev;
+	return pPop;
+}
+
+/* Queue는 이미 구현이 되어 있따.. */
+USERDATA* Dequeue(void) {
+	return Pop();
+}
+
+void Enqueue(USERDATA* pUser) {
+	AddNewNode(pUser->age, pUser->name, pUser->phone);
+}
+
 int main(void) {
 	InitList();
-	TestStep01();
-	TestStep02();
-	TestStep03();
+
+	USERDATA user = {10,"Test01",};
+	//Push(&user);
+	Enqueue(&user);
+	user.age = 11;
+	strcpy_s(user.name, sizeof(user.name), "Test02");
+	//Push(&user);
+	Enqueue(&user);
+	user.age = 12;
+	strcpy_s(user.name, sizeof(user.name), "Test03");
+	Enqueue(&user);
+	//Push(&user);
+	PrintList();
+
+	for (int i = 0; i < 3; i++) {
+		//USERDATA* pUser = Pop();
+		USERDATA* pUser = Dequeue();
+		printf("Pop : %d, %s\n",pUser->age,pUser->name);
+		free(pUser);//pop한 노드 해체
+	}
+
+	ReleaseList();
 	return 0;
 }
