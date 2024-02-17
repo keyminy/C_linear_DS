@@ -20,6 +20,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dataStruct.c" />
+    <ClCompile Include="list.c" />
+    <ClCompile Include="testCode.c" />
+    <ClCompile Include="ui.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="list.h" />
+    <ClInclude Include="testCode.h" />
+    <ClInclude Include="ui.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
