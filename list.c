@@ -6,6 +6,8 @@
 USERDATA g_HeadNode = { 0,"__Dummy Head__" };
 USERDATA g_TailNode = { 0,"__Dummy Tail__" };
 
+USERDATA** g_idxListAge = NULL;
+USERDATA** g_idxListName = NULL;
 
 void AddNewNode(int age, const char* pszName, const char* pszPhone) {
 	//const 포인터 : 값을 읽기만하지, 쓰는것은 아니므로
@@ -144,4 +146,66 @@ void RemoveNode(USERDATA* pRemove) {
 
 	printf("RemoveNode() : %s\n", pRemove->name);
 	free(pRemove);
+}
+
+
+void UpdateIndexAll(void)
+{
+
+	if (g_idxListAge != NULL)
+	{
+		free(g_idxListAge);
+		g_idxListAge = NULL;
+	}
+
+	if (g_idxListName != NULL)
+	{
+		free(g_idxListName);
+		g_idxListName = NULL;
+	}
+
+	int cnt = 0;
+	g_idxListAge = (USERDATA**)MakeIndexAge(&cnt);
+	g_idxListName = (USERDATA**)MakeIndexName(&cnt);
+}
+
+int LoadListFromFile(void)
+{
+	ReleaseList();
+	FILE* fp = NULL;
+	fopen_s(&fp, "listData.dat", "rb");
+	if (fp == NULL)
+		return 0;
+
+	USERDATA user = { 0 };
+	while (fread(&user, sizeof(USERDATA), 1, fp) > 0)
+	{
+		AddNewNode(user.age, user.name, user.phone, 0);
+		memset(&user, 0, sizeof(USERDATA));
+	}
+
+	//data를 다 loading후 index재계산하여 정렬
+	UpdateIndexAll();
+
+	fclose(fp);
+	return 1;
+}
+
+int SaveListToFile(void)
+{
+	FILE* fp = NULL;
+	fopen_s(&fp, "listData.dat", "wb");
+	if (fp == NULL)
+		return 0;
+
+	USERDATA* pTmp = g_HeadNode.pNext;
+	while (pTmp != NULL && pTmp != &g_TailNode)
+	{
+		//list를 통채로 파일에 저장한다.
+		fwrite(pTmp, sizeof(USERDATA), 1, fp);
+		pTmp = pTmp->pNext;
+	}
+
+	fclose(fp);
+	return 1;
 }

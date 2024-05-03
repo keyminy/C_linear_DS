@@ -13,3 +13,6 @@ MY_MENU PrintMenu(void);
 void PrintList(void);
 void PrintListReverse(void);
 void Search(void);
+USERDATA* SearchListByName(USERDATA* pUser, char* pszName);
+void _SearchByName(void);
+void EditUserData(USERDATA* pUser);

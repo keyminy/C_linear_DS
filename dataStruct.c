@@ -6,12 +6,19 @@
 #include "ui.h"
 #include "testCode.h"
 
+
+
 int main(void) {
 	InitList();
 
+	LoadListFromFile();
+	
 	InitDummyData();
+	
 	EventLoopRun();
-
+	
+	SaveListToFile();
+	
 	ReleaseList();
 	return 0;
 }

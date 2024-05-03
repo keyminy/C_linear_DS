@@ -10,8 +10,10 @@ typedef struct USERDATA {
 //Head Node가 필요하다
 //USERDATA* g_pHeadNode = NULL;
 /*더미 헤드를 갖는 2중 연결 리스트로 변환*/
-USERDATA g_HeadNode;
-USERDATA g_TailNode;
+extern USERDATA g_HeadNode;
+extern USERDATA g_TailNode;
+extern USERDATA** g_idxListAge;
+extern USERDATA** g_idxListName;
 
 /*header에는 함수 원형 선언*/
 void AddNewNode(int age, const char* pszName, const char* pszPhone);
@@ -24,3 +26,6 @@ void Push(USERDATA* pUser);
 USERDATA* SearchByName(const char* pszName);
 USERDATA* SearchToRemove(const char* pszName);
 void RemoveNode(USERDATA* pRemove);
+int LoadListFromFile(void);
+int SaveListToFile(void);
+void UpdateIndexAll(void);
