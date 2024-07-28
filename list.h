@@ -29,3 +29,4 @@ void RemoveNode(USERDATA* pRemove);
 int LoadListFromFile(void);
 int SaveListToFile(void);
 void UpdateIndexAll(void);
+int IsEmpty(void);

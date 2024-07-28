@@ -91,22 +91,7 @@ void Search(void) {
 }
 
 
-void EditUserData(USERDATA* pUser)
-{
-	printf("New phone number: ");
-	char szBuffer[32] = { 0 };
-	gets_s(szBuffer, sizeof(szBuffer));
-	if (strlen(szBuffer) > 0)
-	{
-		// 편집한 내용을 memory상에서 overwrite
-		memcpy(pUser->phone, szBuffer, sizeof(pUser->phone));
 
-		printf("Do you want to save now?(y/n)");
-		char ch = _getch();
-		if (ch == 'y' || ch == 'Y')
-			SaveListToFile();
-	}
-}
 USERDATA* SearchListByName(USERDATA* pUser, char* pszName)
 {
 	USERDATA* pTmp = g_HeadNode.pNext;
@@ -122,29 +107,4 @@ USERDATA* SearchListByName(USERDATA* pUser, char* pszName)
 	}
 
 	return NULL;
-}
-
-void _SearchByName(void)
-{
-	char name[32] = { 0 };
-
-	printf("name: ");
-	gets_s(name, sizeof(name));
-
-	USERDATA user = { 0 };
-	USERDATA* pUser = SearchListByName(&user, name);
-	if (pUser != NULL)
-	{
-		printf("Found: %d, %s, %s\n",
-			user.age, user.name, user.phone);
-
-		printf("Do you want to edit? (y/n)\n");
-		char ch = _getch();
-		if (ch == 'y' || ch == 'Y')
-			EditUserData(pUser);
-	}
-	else
-		puts("Not found");
-
-	_getch();
 }
