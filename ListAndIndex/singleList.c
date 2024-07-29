@@ -6,6 +6,24 @@
 
 USERDATA g_HeadNode = { 0, "_DummyHead_" };
 USERDATA g_TailNode = { 0, "_DummyTail_" };
+static unsigned int g_listCount = 0;
+
+unsigned int GetListCount(void)
+{
+	return g_listCount;
+}
+
+unsigned int RecalcListCount(void)
+{
+	unsigned int cnt = 0;
+	USERDATA* pTmp = g_HeadNode.pNext;
+	while (pTmp != &g_TailNode)
+	{
+		++cnt;
+		pTmp = pTmp->pNext;
+	}
+	return g_listCount;
+}
 
 
 void InitList(void)
@@ -13,6 +31,7 @@ void InitList(void)
 	ReleaseList();
 	g_HeadNode.pNext = &g_TailNode;
 	g_TailNode.pPrev = &g_HeadNode;
+	g_listCount = 0;
 }
 
 int IsEmpty(void)
@@ -44,6 +63,7 @@ void ReleaseList(void)
 
 	g_HeadNode.pNext = &g_TailNode;
 	g_TailNode.pPrev = &g_HeadNode;
+	g_listCount = 0;
 }
 
 
@@ -167,6 +187,7 @@ int RemoveByName(char* pszName)
 			pPrevNode->pNext = pCur->pNext;
 
 			free(pCur);
+			--g_listCount;
 			return 1;
 		}
 
@@ -188,6 +209,8 @@ void AddNewNode(int age, char* pszName, char* pszPhone)
 	pNewNode->pPrev = pPrevNode;
 	pNewNode->pNext = &g_TailNode;
 	g_TailNode.pPrev = pNewNode;
+
+	++g_listCount;
 }
 
 int SearchListByAge(int age)
@@ -207,41 +230,33 @@ int SearchListByAge(int age)
 void** SearchByAgeRange(int min, int max, int* pCount)
 {
 	*pCount = 0;
-	USERDATA* pMin = NULL; // 최솟값 가리킬 포인터
-	USERDATA* pMax = NULL; // 최댓값 가리킬 포인터
+	USERDATA* pMin = NULL;
+	USERDATA* pMax = NULL;
 	USERDATA* pTmp = g_HeadNode.pNext;
-	/* minIdx 찾기 */
 	while (pTmp != &g_TailNode)
 	{
 		if (pTmp->age >= min)
-		{ // 찾으면 while탈출
-			// min,max = 6,6으로 같게 입력할 수도 있으므로
-			// pMin,pMax = pTmp로 pMax에도 대입해준 것.
+		{
 			pMin = pTmp;
-			pMax = pTmp;
 			break;
 		}
-		// 내가 입력한 최솟값 min 나올때까지 pTmp움직여
 		pTmp = pTmp->pNext;
-	} 
+	}
 
 	if (pMin != NULL)
 		pTmp = pMin->pNext;
 	else
-		pTmp = g_HeadNode.pNext; // 다시 처음값으로 돌아간다.(head의 next,KIM)
-	/* maxIdx 찾기 */
+		pTmp = g_HeadNode.pNext;
 	while (pTmp != &g_TailNode)
 	{
-		if (pTmp->age >= min && pTmp->age <= max)
-			// min : 9 ,max : 2같은 이상한것 방지
+		if (pTmp->age <= max)
 			pMax = pTmp;
 		else if (pTmp->age > max)
-			// 값 찾으면 break(pTmp->age=7 > max=6)이면 break
 			break;
+
 		pTmp = pTmp->pNext;
 	}
 
-	/* pMin,pMax를 통해 새로운 collector 리스트 생성 */
 	if (pMin != NULL && pMax != NULL)
 	{
 		USERDATA* pTmp = pMin;
@@ -251,7 +266,7 @@ void** SearchByAgeRange(int min, int max, int* pCount)
 			++cnt;
 			pTmp = pTmp->pNext;
 		}
-		// 여기서, pTmp = pMax
+
 		*pCount = cnt;
 		void** pNodePtrList = malloc(sizeof(void*) * cnt);
 
@@ -262,10 +277,90 @@ void** SearchByAgeRange(int min, int max, int* pCount)
 			pNodePtrList[i] = pTmp;
 			pTmp = pTmp->pNext;
 		}
-		pNodePtrList[i] = pMax; // pMax = pTmp
+		pNodePtrList[i] = pMax;
 
 		return pNodePtrList;
 	}
 
+	return NULL;
+}
+
+void** MakeIndexAge(int* pCnt)
+{
+	*pCnt = 0;
+	if (IsEmpty())
+		return NULL;
+
+	USERDATA** aList;
+	aList = malloc(sizeof(USERDATA*) * GetListCount());
+	memset(aList, 0, sizeof(USERDATA*) * GetListCount());
+	*pCnt = GetListCount();
+
+	USERDATA* pTmp = g_HeadNode.pNext;
+	for (int i = 0; pTmp != &g_TailNode; ++i)
+	{
+		aList[i] = pTmp;
+		pTmp = pTmp->pNext;
+	}
+
+	for (unsigned int i = 0; i < GetListCount() - 1; ++i)
+	{
+		for (unsigned int j = i + 1; j < GetListCount(); ++j)
+		{
+			if (aList[i]->age > aList[j]->age)
+			{
+				USERDATA* pTmp = aList[i];
+				aList[i] = aList[j];
+				aList[j] = pTmp;
+			}
+		}
+	}
+
+	//for (unsigned int i = 0; i < GetListCount(); ++i)
+	//	printf("%d, %s, %s\n",
+	//		aList[i]->age, aList[i]->name, aList[i]->phone);
+	return aList;
+}
+
+void** SearchByIndexAgeRange(int min, int max, unsigned int* pCount)
+{
+	*pCount = 0;
+	unsigned int cntTotal = 0;
+	USERDATA** aList = (USERDATA**)MakeIndexAge(&cntTotal);
+
+	int idxMin = -1, idxMax = 0;
+	unsigned int i = 0;
+	/* minIdx 찾기 */
+	for (i = 0; i < cntTotal; ++i)
+	{
+		if (aList[i]->age >= min && aList[i]->age <= max)
+		{
+			idxMin = i;
+			idxMax = i;
+			break;
+		}
+	}
+	/* maxIdx 찾기 */
+	if (idxMin >= 0)
+	{
+		for (; i < cntTotal; ++i)
+		{
+			if (aList[i]->age <= max)
+				idxMax = i;
+			else if (aList[i]->age > max)
+				break;
+		}
+		/* idx구간만큼의 새로운 collector생성 */
+		int length = idxMax - idxMin + 1;
+		USERDATA** aSelected = malloc(sizeof(void*) * length);
+		memcpy(aSelected, aList + idxMin, sizeof(void*) * length);
+
+		free(aList);
+
+		*pCount = length;
+		return aSelected;
+	}
+
+	free(aList);
 	return NULL;
 }
