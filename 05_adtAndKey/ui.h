@@ -2,12 +2,10 @@
 
 typedef enum MY_MENU
 {
-	EXIT, NEW, SEARCH, SEARCH_RANGE,SEARCH_NAME, PRINT, REMOVE
+	EXIT, NEW, SEARCH, SORTLIST, PRINT, REMOVE
 } MY_MENU;
 
 
 MY_MENU PrintMenu(void);
 void PrintList(int wait);
 void EventLoopRun(void);
-void AddNewUser(void);
-void SearchByNameBinSearch();

@@ -10,7 +10,7 @@ MY_MENU PrintMenu(void)
 	MY_MENU input = 0;
 
 	system("cls");
-	printf("[1]New\t[2]Search\t[3]Search age\t[4]Print\t[5]Remove\t[0]Exit\n");
+	printf("[1]New\t[2]Search\t[3]Search age\t\n[4]Search name\t[5]Print\t[6]Remove\t[0]Exit\n");
 	scanf_s("%d%*c", &input);
 	return input;
 }
@@ -182,6 +182,10 @@ void EventLoopRun(void)
 			//SearchByAge();
 			SearchByAgeIndex();
 			break;
+			
+		case SEARCH_NAME:
+			SearchByNameBinSearch();
+			break;
 
 		case PRINT:
 			//PrintList(1);
@@ -197,4 +201,36 @@ void EventLoopRun(void)
 		}
 	}
 	puts("Bye~!");
+}
+
+void SearchByNameBinSearch() {
+	char name[32] = { 0 };
+	printf("name: ");
+	gets_s(name, sizeof(name));
+
+	int left = 0;
+	int right = GetListCount() - 1;
+
+	while (left <= right) {
+		int mid = (left + right) / 2;
+		int cmp = strcmp(g_idxListName[mid]->name, name);
+		if (!cmp) {
+			//이름 찾음
+			printf("Found: %d, %s, %s\n", g_idxListName[mid]->age, g_idxListName[mid]->name, g_idxListName[mid]->phone);
+			_getch();
+			return;
+		}
+		else if (cmp < 0) {
+			// 찾는 이름이 더 큰 경우 오른쪽을 탐색
+			left = mid + 1;
+		}
+		else {
+			// 찾는 이름이 더 작은 경우 왼쪽을 탐색
+			right = mid - 1;
+		}
+	}
+	// 이름을 찾지 못한 경우
+	printf("Not found\n");
+	_getch();
+	return;
 }
